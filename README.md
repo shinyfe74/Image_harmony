@@ -7,7 +7,7 @@ calculate image color harmony by color hue degree
 - matplotlib.pyplot
 - collections Counter
 - scipy stats
-- scipy.optimize curve_fit
+- scipy.optimize find_peaks
 
 
 # How to use
