@@ -103,4 +103,4 @@ def image_harmony(image_path, threshold = 0.005, hue_distance = 15, harmony_grap
     return harmony, peak1_xy, peak2_xy, peaks_x, peaks_y, completion_time
 
 
-print(image_harmony('./Lenna.jpg', threshold=0.005, hue_distance=30, harmony_graph=True))
+print(image_harmony('./Lenna.png', threshold=0.005, hue_distance=15, harmony_graph=True))
