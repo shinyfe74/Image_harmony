@@ -18,7 +18,7 @@ You can use module like this
 
 
 # Result
-This function will return **(Image_harmony, 1st peak xy, 2nd peak xy, Completion_time)**
+This function will return **(Image_harmony, 1st peak xy, 2nd peak xy, peaks x, peaks y, Completion_time)**
  - Image_harmonry : The higher value means more harmonious image
 - ex)  image_harmony('./Lenna.png', threshold=0.005, hue_distance=15, harmony_graph=False)    
    - > (28, [10, 0.01728678506424689], [342, 0.015386930437978728], [10, 342], [0.01728678506424689, 0.015386930437978728], 0.7515513896942139)
