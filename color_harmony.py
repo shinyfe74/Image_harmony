@@ -30,46 +30,58 @@ def image_harmony(image_path, threshold = 0.005, hue_distance = 15, harmony_grap
     x_grid = np.linspace(0, 180, 360)  #index is hue degree
     peaks, properties = find_peaks(gaussian_kde(x_grid), height=threshold, distance=hue_distance)
 
-    #find 1st peak
-    peak1_id = np.argmax(properties["peak_heights"])
-    peak1 = int(x_grid[peaks[peak1_id]]*2)
-    peak1_xy = [peak1, properties["peak_heights"][peak1_id]]
+    peaks_x = []
+    peaks_y = []
+    for i in range(len(peaks)):
+        peaks_x.append(int(x_grid[peaks[i]]*2))
+        peaks_y.append(properties["peak_heights"][i])
 
-    #find 2dn peak
-    #if has no peak 2, harmoney == 0
-    if len(peaks) < 2:
-        peak2_xy = ['None', 'None']
-        harmony_opp = "Color Inharmonic"
+
+    #find 1st peak
+    if len(peaks) > 0:
+        sort_peak_y = np.argsort(properties["peak_heights"])
+        peak1_x = int(x_grid[peaks[sort_peak_y[-1]]]*2)
+        raw_peak1_x = int(x_grid[peaks[sort_peak_y[-1]]])
+        peak1_y = properties["peak_heights"][sort_peak_y[-1]]
+        peak1_xy = [peak1_x, peak1_y]
+
+        #find 2nd peak
+        #if has no peak 2, harmoney == 0
+        sort_peak_y = np.delete(sort_peak_y, [-1])
+
+        peak2_x = 'None'
+        peak2_y = 'None'
+        harmony = "Color Inharmonic"
+
+        while len(sort_peak_y) > 0:
+            temp_peak2_x = int(x_grid[peaks[sort_peak_y[-1]]]*2)
+            temp_raw_peak2_x = int(x_grid[peaks[sort_peak_y[-1]]])
+            temp_peak2_y = properties["peak_heights"][sort_peak_y[-1]]
+
+            harmony_div = abs(peak1_x - temp_peak2_x)
+            
+            if harmony_div > 180:
+                temp_harmony = abs(360-harmony_div)
+            else:
+                temp_harmony = harmony_div
+
+            #if peaks close to (0, 360), recalculate harmony
+            if (temp_harmony < hue_distance):
+                sort_peak_y = np.delete(sort_peak_y, [-1])
+            else:
+                peak2_x = temp_peak2_x
+                raw_peak2_x = temp_raw_peak2_x
+                peak2_y = temp_peak2_y
+                harmony = temp_harmony
+                break
+
+        peak2_xy = [peak2_x, peak2_y]
 
     else:
-        peak2_id = np.argsort(properties["peak_heights"])[-2]
-        peak2 = int(x_grid[peaks[peak2_id]]*2)
-        peak2_xy = [peak2, properties["peak_heights"][peak2_id]]
+        peak1_xy = ['None', 'None']
+        peak2_xy = ['None', 'None']
+        harmony = "Color Inharmonic"
 
-        #calculate harmonry
-        harmony_div = abs(peak1 - peak2)
-
-        if harmony_div > 180:
-            harmony_opp = abs(360-harmony_div)
-        else:
-            harmony_opp = harmony_div
-
-        #if peaks close to (0, 360), recalculate harmony
-        if (harmony_opp < hue_distance) :
-            if len(peaks) < 3:
-                peak2_xy = ['None', 'None']
-                harmony_opp = "Color Inharmonic"
-            else:
-                peak2_id = np.argsort(properties["peak_heights"])[-3]
-                peak2 = int(x_grid[peaks[peak2_id]]*2)
-                peak2_xy = [peak2, properties["peak_heights"][peak2_id]]
-
-                harmony_div = abs(peak1 - peak2)
-
-                if harmony_div > 180:
-                    harmony_opp = abs(360-harmony_div)
-                else:
-                    harmony_opp = harmony_div
 
     #draw graph
     if harmony_graph:
@@ -80,17 +92,15 @@ def image_harmony(image_path, threshold = 0.005, hue_distance = 15, harmony_grap
         ax.set_xlim(xmin = 0, xmax = 180)
         ax.set_ylabel("Normalized Frequency", size=6)
         ax.plot(x_grid, gaussian_kde(x_grid), 'r-', label='Gaussian_kde')
-        ax.plot(x_grid[peaks[peak1_id]], properties["peak_heights"][peak1_id], 'x', ms=10, label=" 1st peak ({0},{1:.3f})".format(peak1, properties["peak_heights"][peak1_id]))
-        if (harmony_opp != 0):
-            ax.plot(x_grid[peaks[peak2_id]], properties["peak_heights"][peak2_id], 'x', ms=10, label=" 2nd peak ({0},{1:.3f})".format(peak2, properties["peak_heights"][peak2_id]))
+        ax.plot(raw_peak1_x, peak1_y, 'x', ms=10, label=" 1st peak ({0},{1:.3f})".format(peak1_x, peak1_y))
+        if (harmony != "Color Inharmonic"):
+            ax.plot(raw_peak2_x, peak2_y, 'x', ms=10, label=" 2nd peak ({0},{1:.3f})".format(raw_peak2_x, peak2_y))
         ax.legend(loc='upper right')
         fig.savefig('./color_harmony.jpg', dpi=400)
 
 
     completion_time = time.time() - start_time
-    return harmony_opp, peak1_xy, peak2_xy, completion_time
+    return harmony, peak1_xy, peak2_xy, peaks_x, peaks_y, completion_time
 
 
-print(image_harmony('./Lenna.png', threshold=0.005, hue_distance=15, harmony_graph=False))
-
-
+print(image_harmony('./Lenna.jpg', threshold=0.005, hue_distance=30, harmony_graph=True))
